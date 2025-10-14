@@ -1,98 +1,154 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from "react-native";
+import axios from "axios";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const API_KEY = "e495a683473bf92558f90082a492bc10";
 
-export default function HomeScreen() {
+interface WeatherData {
+  name: string;
+  sys: {
+    country: string;
+  };
+  main: {
+    temp: number;
+  };
+  weather: {
+    description: string;
+    icon: string;
+  }[];
+}
+
+
+export default function Index() {
+  const [city, setCity] = useState<string>("");
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [error, setError] = useState<string>("");
+
+  const fetchWeather = async () => {
+    if (!city) {
+      setError("Please enter a city name.");
+      return;
+    }
+    try {
+      const res = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
+      );
+      setWeather(res.data);
+      setError("");
+    } catch (err) {
+      setError("City not found. Try again!");
+      setWeather(null);
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
+      <Text style={styles.title}>🌤 Weather App</Text>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter city name"
+        value={city}
+        onChangeText={setCity}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={fetchWeather}>
+        <Text style={styles.buttonText}>Get Weather</Text>
+      </TouchableOpacity>
+
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      {weather && (
+        <View style={styles.card}>
+          <Text style={styles.city}>
+             {weather.name}, {weather.sys.country}</Text>
+          <Text style={styles.temp}>{Math.round(weather.main.temp)}°C</Text>
+          <Text style={styles.desc}>{weather.weather[0].description}</Text>
+          <Image
+            style={styles.icon}
+            source={{
+              uri:`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
+            }}
+          />
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#87CEEB",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#fff",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  
+  input: {
+    backgroundColor: "#fff",
+    width: "40%", 
+    padding: 14,
+    borderRadius: 12,
+    textAlign: "center",
+    marginBottom: 12,
+    fontSize: 18,
+  },
+  button: {
+    backgroundColor: "#355C7D",
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    marginTop: 5,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  error: {
+    color: "red",
+    marginTop: 10,
+  },
+  // 🔹 THICKER WEATHER CARD
+  card: {
+    backgroundColor: "#ffffffdd",
+    width: "40%", 
+    borderRadius: 20,
+    marginTop: 25,
+    paddingVertical: 25,
+    paddingHorizontal: 40,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    elevation: 10,
+  },
+ city: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#000",
+  },
+  temp: {
+    fontSize: 46,
+    fontWeight: "bold",
+    marginVertical: 5,
+  },
+  desc: {
+    fontSize: 20,
+    textTransform: "capitalize",
+    color: "#444",
+  },
+  icon: {
+    width: 120,
+    height: 120,
+    marginTop: 10,
   },
 });
