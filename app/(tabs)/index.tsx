@@ -4,25 +4,21 @@ import axios from "axios";
 
 const API_KEY = "e495a683473bf92558f90082a492bc10";
 
-interface WeatherData {
-  name: string;
-  sys: {
-    country: string;
-  };
-  main: {
-    temp: number;
-  };
-  weather: {
-    description: string;
-    icon: string;
-  }[];
-}
-
+type WeatherData = {
+  city: string;
+  temp: number;
+  feels_like: number;
+  condition: string;
+  description: string;
+  humidity: number;
+  wind: number;
+  icon: string;
+};
 
 export default function Index() {
-  const [city, setCity] = useState<string>("");
+  const [city, setCity] = useState("");
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
 
   const fetchWeather = async () => {
     if (!city) {
@@ -33,7 +29,21 @@ export default function Index() {
       const res = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
       );
-      setWeather(res.data);
+
+      const data = res.data;
+      // ✅ Parse and simplify the data structure
+      const parsed = {
+        city: `${data.name}${data.sys && data.sys.country ? ", " + data.sys.country : ""}`,
+        temp: Math.round(data.main.temp),
+        feels_like: Math.round(data.main.feels_like),
+        condition: data.weather?.[0]?.main ?? "",
+        description: data.weather?.[0]?.description ?? "",
+        humidity: data.main.humidity,
+        wind: data.wind.speed,
+        icon: data.weather?.[0]?.icon ?? "01d",
+      };
+
+      setWeather(parsed);
       setError("");
     } catch (err) {
       setError("City not found. Try again!");
@@ -60,16 +70,24 @@ export default function Index() {
 
       {weather && (
         <View style={styles.card}>
-          <Text style={styles.city}>
-             {weather.name}, {weather.sys.country}</Text>
-          <Text style={styles.temp}>{Math.round(weather.main.temp)}°C</Text>
-          <Text style={styles.desc}>{weather.weather[0].description}</Text>
+          <Text style={styles.city}>{weather.city}</Text>
           <Image
             style={styles.icon}
             source={{
-              uri:`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
+              uri: `https://openweathermap.org/img/wn/${weather.icon}@2x.png`,
             }}
           />
+
+          <Text style={styles.temp}>{weather.temp}°C</Text>
+          <Text style={styles.desc}>{weather.description}</Text>
+
+          {/* ✅ New Weather Details */}
+          <View style={styles.details}>
+            <Text style={styles.detailText}>🌡️ Feels Like: {weather.feels_like}°C</Text>
+            <Text style={styles.detailText}>💧 Humidity: {weather.humidity}%</Text>
+            <Text style={styles.detailText}>💨 Wind: {weather.wind} m/s</Text>
+            <Text style={styles.detailText}>⛅ Condition: {weather.condition}</Text>
+          </View>
         </View>
       )}
     </View>
@@ -90,10 +108,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: "#fff",
   },
-  
   input: {
     backgroundColor: "#fff",
-    width: "40%", 
+    width: "30%",
     padding: 14,
     borderRadius: 12,
     textAlign: "center",
@@ -116,14 +133,13 @@ const styles = StyleSheet.create({
     color: "red",
     marginTop: 10,
   },
-  // 🔹 THICKER WEATHER CARD
   card: {
     backgroundColor: "#ffffffdd",
-    width: "40%", 
+    width: "25%",
     borderRadius: 20,
     marginTop: 25,
     paddingVertical: 25,
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     alignItems: "center",
     shadowColor: "#000",
     shadowOpacity: 0.3,
@@ -131,8 +147,8 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
- city: {
-    fontSize: 28,
+  city: {
+    fontSize: 26,
     fontWeight: "900",
     color: "#000",
   },
@@ -145,10 +161,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textTransform: "capitalize",
     color: "#444",
+    marginBottom: 10,
   },
   icon: {
     width: 120,
     height: 120,
     marginTop: 10,
   },
-});
+  details: {
+    marginTop: 10,
+    alignItems: "flex-start",
+  },
+  detailText: {
+    fontSize: 16,
+    color: "#333",
+    marginVertical: 2,
+  },
+}); 
