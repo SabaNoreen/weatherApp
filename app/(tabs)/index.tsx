@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from "react-native";
 import axios from "axios";
 
-const API_KEY = "e495a683473bf92558f90082a492bc10";
+const API_KEY = "7fa7ce8b09e88cb61288213c92104176";
 
 type WeatherData = {
   city: string;
@@ -27,7 +27,7 @@ export default function Index() {
     }
     try {
       const res = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
+       `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
       );
 
       const data = res.data;
@@ -136,16 +136,16 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffffdd",
     width: "25%",
-    borderRadius: 20,
-    marginTop: 25,
-    paddingVertical: 25,
+    borderRadius: 16,
+    marginTop: 15,
+    paddingVertical: 15,
     paddingHorizontal: 20,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
-    elevation: 10,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 6,
   },
   city: {
     fontSize: 26,
@@ -153,20 +153,20 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   temp: {
-    fontSize: 46,
+    fontSize: 38,
     fontWeight: "bold",
-    marginVertical: 5,
+    marginVertical: 3,
   },
   desc: {
-    fontSize: 20,
+    fontSize: 18,
     textTransform: "capitalize",
     color: "#444",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   icon: {
-    width: 120,
-    height: 120,
-    marginTop: 10,
+    width: 80,
+    height: 80,
+    marginTop: 5,
   },
   details: {
     marginTop: 10,
